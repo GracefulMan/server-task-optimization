@@ -1,23 +1,14 @@
-"""
-This part of code is the Q learning brain, which is a brain of the agent.
-All decisions are made in here.
-View more on my tutorial page: https://morvanzhou.github.io/tutorials/
-"""
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
 np.set_printoptions(suppress=True)
-N = 30
-M = 20
+N = 20
+M = 5
 #generate data
-sample_num = 5000
+sample_num = 10000
 feature_num = 4
-data = np.ones([sample_num, feature_num])
-data[:,0] = np.arange(sample_num).reshape(sample_num, )
-data[:,1] = np.sort(np.random.randint(0,int(sample_num/10),sample_num)).reshape(sample_num, )
-data[:,2] = np.random.randint(1, 100, sample_num).reshape(sample_num, )
-data[:,3] = np.random.randint(0, 4, sample_num).reshape(sample_num, )
+data = np.load('data.npy')
 class DeepQnetwork:
     def __init__(
         self,
@@ -31,7 +22,6 @@ class DeepQnetwork:
         batch_size = 32,
         e_greedy_increment = None,
         output_graph = False
-
     ):
         self.n_actions = n_actions
         self.n_features = n_features
@@ -74,7 +64,10 @@ class DeepQnetwork:
         with tf.variable_scope('eval_net'):
             e1 = tf.layers.dense(self.s, 20, tf.nn.relu, kernel_initializer=w_initializer,
                                  bias_initializer=b_initializer, name='e1')
-            self.q_eval = tf.layers.dense(e1, self.n_actions, kernel_initializer=w_initializer,
+            e2 = tf.layers.dense(e1, 20, tf.nn.relu, kernel_initializer=w_initializer,
+                                 bias_initializer=b_initializer, name='e2')
+
+            self.q_eval = tf.layers.dense(e2, self.n_actions, kernel_initializer=w_initializer,
                                           bias_initializer=b_initializer, name='q')
 
 
@@ -82,8 +75,10 @@ class DeepQnetwork:
         with tf.variable_scope('target_net'):
             t1 = tf.layers.dense(self.s_, 20, tf.nn.relu, kernel_initializer=w_initializer,
                                  bias_initializer=b_initializer, name='t1')
-            self.q_next = tf.layers.dense(t1, self.n_actions, kernel_initializer=w_initializer,
-                                          bias_initializer=b_initializer, name='t2')
+            t2 = tf.layers.dense(t1, 20, tf.nn.relu, kernel_initializer=w_initializer,
+                                 bias_initializer=b_initializer, name='t2')
+            self.q_next = tf.layers.dense(t2, self.n_actions, kernel_initializer=w_initializer,
+                                          bias_initializer=b_initializer, name='q_next')
 
         with tf.variable_scope('q_target'):
             q_target = self.r + self.gamma * tf.reduce_max(self.q_next, axis=1, name='Qmax_s_')  # shape=(None, )
@@ -190,6 +185,7 @@ class Env:
         if self._servering[selected_server] < self.campacity[selected_server]:
             value += data[3]
         else:
+            #value -= 1
             value -= (self._servering[selected_server] - self.campacity[selected_server]) *data[3]
             for i in range(self.number):
                 if i != selected_server and self._servering[i] < self.campacity[i]:
@@ -200,9 +196,11 @@ class Env:
         # print(self._servering)
         # print(self.campacity)
         # print('---------------------------------------------------------------------------js')
+        value /= N
+        result = (self.campacity - self._servering)/self.campacity
         self._servering[selected_server] += 1
         self.resouce_queue[selected_server].append(data)
-        return self.campacity - self._servering, value #返回在当前环境s下采取a行动后的环境状态以及奖励值（环境自动更新）
+        return result, value #返回在当前环境s下采取a行动后的环境状态以及奖励值（环境自动更新）
 
     def reset(self):
         self._servering = np.zeros(self.number)
@@ -230,15 +228,17 @@ def main():
         reward_decay = 0.9,
         e_greedy = 0.9,
         replace_target_iter = 200,
-        memory_size = 2000,
+        memory_size = 50000,
         output_graph=True
     )
-    MaxEpisode = 20
-    # res = []
+    MaxEpisode = 5
     for episode in range(MaxEpisode):
         if episode == MaxEpisode -1:
             fig = plt.figure()
             ax = fig.add_subplot(1,1,1)
+            name = [i for i in range(N)]
+            cap = np.full(N,M)
+            ax.plot(name,cap,'b',linewidth=2.5,linestyle='-.')
             plt.ion()
             plt.show()
         environment.reset()
@@ -253,7 +253,7 @@ def main():
                 # RL choose action based on observation
                 action = Brain.choose_action(observation)
                 # RL take action and get next observation and reward
-                observation_, reward = environment.reward(data[index],np.round(action))
+                observation_, reward = environment.reward(data[index],action)
                 Brain.store_transition(observation, action, reward, observation_)
                 if index!=0 and index%500==0:
                     print("current reward:%s \n"%reward)
@@ -271,12 +271,10 @@ def main():
                 except Exception:
                     pass
                 server_name = [i for i in range(N)]
-                lines = ax.plot(server_name, current_server, color='red')
-                # res.append(lines)
+                lines = ax.plot(server_name, environment.getInfo(), color='red')
                 plt.pause(0.1)
-    # ani = animation.ArtistAnimation(fig,res,interval=200,repeat=1000)
-    # ani.save('test.gif',writer='pillow')
     Brain.plot_cost()
+
 if __name__=='__main__':
     main()
 

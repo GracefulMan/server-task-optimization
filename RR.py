@@ -83,7 +83,6 @@ def RR (data, total_server_number, capacity,graph):
         current_time +=1
     print(current_time)
 RR(data=data, total_server_number=N, capacity=M,graph=True)
-
 def Weighted_RR(data, total_server_number, capacity):
     pass
 

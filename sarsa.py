@@ -13,11 +13,7 @@ M = 20
 #generate data
 sample_num = 20000
 feature_num = 4
-data = np.ones([sample_num, feature_num])
-data[:,0] = np.arange(sample_num).reshape(sample_num, )
-data[:,1] = np.sort(np.random.randint(0,int(sample_num/10),sample_num)).reshape(sample_num, )
-data[:,2] = np.random.randint(1, 100, sample_num).reshape(sample_num, )
-data[:,3] = np.random.randint(0, 4, sample_num).reshape(sample_num, )
+data = np.load('data.npy')
 class SarsaTable:
     def __init__(self, serverNum, learning_rate=0.01, reward_decay=0.9, e_greedy=0.9):
         actions=[i for i in range(serverNum)]

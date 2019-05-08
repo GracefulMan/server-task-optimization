@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 np.set_printoptions(suppress=True)
 N = 30
-M = 1000
+M = 20
 #generate data
-sample_num = 20000
+sample_num = 10000
 feature_num = 4
 data = np.ones([sample_num, feature_num])
 data[:,0] = np.arange(sample_num).reshape(sample_num, )
@@ -15,7 +15,7 @@ data[:,1] = np.sort(np.random.randint(0,int(sample_num/10),sample_num)).reshape(
 data[:,2] = np.random.randint(1, 100, sample_num).reshape(sample_num, )
 data[:,3] = np.random.randint(0, 4, sample_num).reshape(sample_num, )
 class SarsaLambdaTable:
-    def __init__(self, serverNum, learning_rate=0.01, reward_decay=0.9, e_greedy=0.9,trace_decay = 0.9):
+    def __init__(self, serverNum, learning_rate=0.01, reward_decay=0.9, e_greedy=0.9,trace_decay = 0.5):
         actions=[i for i in range(serverNum)]
         self.actions = actions  # a list
         self.lr = learning_rate
@@ -45,7 +45,7 @@ class SarsaLambdaTable:
             q_target = r + self.gamma * self.q_table.loc[s_, a_]  # next state is not terminal
         else:
             q_target = r  # next state is terminal
-        error = q_target - q_target
+        error = q_target - q_predict
         #method1
         #self.eligibility_trace.loc[s, a] +=1
 
@@ -152,8 +152,8 @@ def main():
     print(capacity)
     environment = Env(init_server_number=N,capacity=capacity)
     Brain = SarsaLambdaTable(serverNum=N)
-    MaxEpisode = 2
-    # res = []
+    MaxEpisode = 5
+    res = np.array([])
     for episode in range(MaxEpisode):
         if episode == MaxEpisode -1:
             fig = plt.figure()
@@ -189,17 +189,20 @@ def main():
                 # break while loop when end of this episode
                 index += 1
             current_time += 1
-            if episode == MaxEpisode - 1 and current_time % 20 == 0:
-                try:
-                    ax.lines.remove(lines[0])
-                except Exception:
-                    pass
-                server_name = [i for i in range(N)]
-                lines = ax.plot(server_name, current_server, color='red')
+            if episode == MaxEpisode - 1:
+                res = np.append(res,environment.getInfo())
+                # try:
+                #     ax.lines.remove(lines[0])
+                # except Exception:
+                #     pass
+                # server_name = [i for i in range(N)]
+                # lines = ax.plot(server_name, current_server, color='red')
                 # res.append(lines)
-                plt.pause(0.1)
+                # plt.pause(0.1)
     # ani = animation.ArtistAnimation(fig,res,interval=200,repeat=1000)
     # ani.save('test.gif',writer='pillow')
-    Brain.q_table.to_csv('./table.csv',sep=',',header=True)
+    #Brain.q_table.to_csv('./table.csv',sep=',',header=True)
+    res = res.reshape(-1,N)
+    np.save('saraslambda.npy',res)
 if __name__=='__main__':
     main()

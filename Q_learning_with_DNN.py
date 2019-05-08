@@ -3,8 +3,8 @@ import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
 np.set_printoptions(suppress=True)
-N = 20
-M = 5
+N = 30
+M = 20
 #generate data
 sample_num = 10000
 feature_num = 4
@@ -231,16 +231,17 @@ def main():
         memory_size = 50000,
         output_graph=True
     )
-    MaxEpisode = 5
+    MaxEpisode = 20
+    res = np.array([])
     for episode in range(MaxEpisode):
-        if episode == MaxEpisode -1:
-            fig = plt.figure()
-            ax = fig.add_subplot(1,1,1)
-            name = [i for i in range(N)]
-            cap = np.full(N,M)
-            ax.plot(name,cap,'b',linewidth=2.5,linestyle='-.')
-            plt.ion()
-            plt.show()
+        # if episode == MaxEpisode -1:
+        #     fig = plt.figure()
+        #     ax = fig.add_subplot(1,1,1)
+        #     name = [i for i in range(N)]
+        #     cap = np.full(N,M)
+        #     ax.plot(name,cap,'b',linewidth=2.5,linestyle='-.')
+        #     plt.ion()
+        #     plt.show()
         environment.reset()
         current_time = 0
         index = 0
@@ -265,14 +266,19 @@ def main():
                 # break while loop when end of this episode
                 index += 1
             current_time += 1
-            if episode == MaxEpisode - 1 and current_time % 20 == 0:
-                try:
-                    ax.lines.remove(lines[0])
-                except Exception:
-                    pass
-                server_name = [i for i in range(N)]
-                lines = ax.plot(server_name, environment.getInfo(), color='red')
-                plt.pause(0.1)
+            if episode == MaxEpisode - 1:
+                res = np.append(res, environment.getInfo())
+
+
+                # try:
+                #     ax.lines.remove(lines[0])
+                # except Exception:
+                #     pass
+                # server_name = [i for i in range(N)]
+                # lines = ax.plot(server_name, environment.getInfo(), color='red')
+                # plt.pause(0.1)
+    res = res.reshape(-1,N)
+    np.save('dnn.npy',res)
     Brain.plot_cost()
 
 if __name__=='__main__':

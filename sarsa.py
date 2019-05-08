@@ -11,7 +11,7 @@ np.set_printoptions(suppress=True)
 N = 30
 M = 20
 #generate data
-sample_num = 20000
+sample_num = 10000
 feature_num = 4
 data = np.load('data.npy')
 class SarsaTable:
@@ -137,8 +137,8 @@ def main():
     print(capacity)
     environment = Env(init_server_number=N,capacity=capacity)
     Brain = SarsaTable(serverNum=N)
-    MaxEpisode = 4
-    # res = []
+    MaxEpisode = 5
+    res = np.array([])
     for episode in range(MaxEpisode):
         if episode == MaxEpisode -1:
             fig = plt.figure()
@@ -164,8 +164,8 @@ def main():
                 # RL take action and get next observation and reward
                 if index!=0 and index%500==0:
                     print("current reward:%s \n"%reward)
-                if episode == MaxEpisode - 1:
-                    current_server = environment.getInfo()
+                # if episode == MaxEpisode - 1:
+                #     current_server = environment.getInfo()
                 # RL learn from this transition
                 Brain.learn(index == sample_num-1,observation, action, reward, observation_,action_)
                 # swap observation
@@ -174,18 +174,22 @@ def main():
                 # break while loop when end of this episode
                 index += 1
             current_time += 1
-            if episode == MaxEpisode - 1 and current_time % 20 == 0:
-                try:
-                    ax.lines.remove(lines[0])
-                except Exception:
-                    pass
-                server_name = [i for i in range(N)]
-                lines = ax.plot(server_name, current_server, color='red')
+            if episode == MaxEpisode - 1:
+                res = np.append(res, environment.getInfo())
+                # try:
+                #     ax.lines.remove(lines[0])
+                # except Exception:
+                #     pass
+                # server_name = [i for i in range(N)]
+                # lines = ax.plot(server_name, current_server, color='red')
                 # res.append(lines)
-                plt.pause(0.1)
+                # plt.pause(0.1)
     # ani = animation.ArtistAnimation(fig,res,interval=200,repeat=1000)
     # ani.save('test.gif',writer='pillow')
     Brain.q_table.to_csv('./table.csv',sep=',',header=True)
+    res = res.reshape(-1,N)
+    np.save('sarsa.npy',res)
+    print('ok')
 if __name__=='__main__':
     main()
 

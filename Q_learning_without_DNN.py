@@ -6,13 +6,10 @@ np.set_printoptions(suppress=True)
 N = 30
 M = 20
 #generate data
-sample_num = 100000
+sample_num = 10000
 feature_num = 4
-data = np.ones([sample_num, feature_num])
-data[:,0] = np.arange(sample_num).reshape(sample_num, )
-data[:,1] = np.sort(np.random.randint(0,int(sample_num/10),sample_num)).reshape(sample_num, )
-data[:,2] = np.random.randint(1, 100, sample_num).reshape(sample_num, )
-data[:,3] = np.random.randint(0, 4, sample_num).reshape(sample_num, )
+data = np.load('data.npy')
+
 class QLearningTable:
     def __init__(self, serverNum, learning_rate=0.01, reward_decay=0.9, e_greedy=0.9):
         actions=[i for i in range(serverNum)]
@@ -136,8 +133,8 @@ def main():
     print(capacity)
     environment = Env(init_server_number=N,capacity=capacity)
     Brain = QLearningTable(serverNum=N)
-    MaxEpisode = 20
-    # res = []
+    res = np.array([])
+    MaxEpisode = 5
     for episode in range(MaxEpisode):
         if episode == MaxEpisode -1:
             # fig = plt.figure()
@@ -162,8 +159,6 @@ def main():
                 observation_, reward = environment.reward(data[index],action,current_time)
                 if index!=0 and index%500==0:
                     print("current reward:%s \n"%reward)
-                if episode == MaxEpisode - 1:
-                    current_server = environment.getInfo()
                 # RL learn from this transition
                 Brain.learn(index == sample_num-1,observation, action, reward, observation_)
                 # swap observation
@@ -171,7 +166,8 @@ def main():
                 # break while loop when end of this episode
                 index += 1
             current_time += 1
-            # if episode == MaxEpisode - 1 and current_time % 20 == 0:
+            if episode == MaxEpisode - 1 :
+                res = np.append(res,environment.getInfo())
                 # try:
                 #     ax.lines.remove(lines[0])
                 # except Exception:
@@ -183,6 +179,10 @@ def main():
     # ani = animation.ArtistAnimation(fig,res,interval=200,repeat=1000)
     # ani.save('test.gif',writer='pillow')
     Brain.q_table.to_csv('./table.csv',sep=',',header=True)
+    res = res.reshape(-1,N)
+    print(res)
+    np.save('Q_learn.npy',res)
+    print('finished!')
 if __name__=='__main__':
     main()
 

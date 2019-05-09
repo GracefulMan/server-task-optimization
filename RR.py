@@ -81,7 +81,8 @@ data = np.load('data.npy')
 
 def NewRR(data, total_server_number,capacity):
     res = np.array([])
-    capacity = np.full(total_server_number,capacity)
+    #capacity = np.full(total_server_number,capacity)
+    capacity = np.load('m.npy')
     servering = np.full(total_server_number, 0)
     resouce = {}
     for i in range(total_server_number):

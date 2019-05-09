@@ -45,7 +45,7 @@ class DeepQnetwork:
         t_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='target_net')
         e_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='eval_net')
         with tf.variable_scope('hard_replacement'):
-            self.target_replace_op = [tf.assign(t, e) for t, e in zip(t_params, e_params)]
+            self.target_replace_op = [tf.assign(t, e) for t, e in zip(t_params, e_params)]#用eval的参数更新target的参数。
         self.sess = tf.Session()
         if output_graph:
             # $ tensorboard --logdir=logs
@@ -98,8 +98,6 @@ class DeepQnetwork:
         index = self.memory_counter % self.memory_size
         self.memory[index, :] = transition
         self.memory_counter += 1
-
-
     def choose_action(self, observation):#传入servering数组
         #to have batch dimension when feed into tf placeholder
         observation = observation[np.newaxis, :]
@@ -114,7 +112,6 @@ class DeepQnetwork:
         else:
             action = np.random.randint(0,self.n_actions)
         return action
-
     def learn(self):
         #check to replace target parameters
         if self.learn_step_counter % self.replace_target_iter == 0:
@@ -136,7 +133,6 @@ class DeepQnetwork:
                 self.s_: batch_memory[:, -self.n_features:]
             })
         self.cost_his.append(cost)
-
         #increasing epsilon
         self.epsilon = self.epsilon + self.epsilon_increment if self.epsilon < self.epsilon_max else self.epsilon_max
         self.learn_step_counter += 1
@@ -213,13 +209,10 @@ class Env:
         #     pass
     def getInfo(self):
         return self._servering
-
-
-
-
 def main():
     #训练集的feature：时间，优先级，运行时间长度
-    capacity =np.array( np.full(N,M) )
+    #capacity =np.array( np.full(N,M) )
+    capacity = np.load('m.npy')
     environment = Env(init_server_number=N,capacity=capacity)
     Brain = DeepQnetwork(
         n_actions = N,
@@ -228,7 +221,7 @@ def main():
         reward_decay = 0.9,
         e_greedy = 0.9,
         replace_target_iter = 200,
-        memory_size = 50000,
+        memory_size = 1000000,
         output_graph=True
     )
     MaxEpisode = 20
@@ -268,8 +261,6 @@ def main():
             current_time += 1
             if episode == MaxEpisode - 1:
                 res = np.append(res, environment.getInfo())
-
-
                 # try:
                 #     ax.lines.remove(lines[0])
                 # except Exception:

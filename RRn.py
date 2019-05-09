@@ -10,9 +10,9 @@ rr = np.load('RR.npy')
 dnn =np.load('dnn.npy')
 fig = plt.figure()
 index = 0
-plt.ylim((0,50))
-plt.title("M=1000 N=30")
-const = [M for i in range(N)]
+plt.ylim((0,100))
+plt.title("N=30")
+const = np.load('m.npy')
 plt.plot(server_name,const,linestyle='-.',color='coral')
 plt.xlabel("server")
 plt.ylabel("current task")
@@ -35,8 +35,7 @@ while index < total_line:
     saraslambdalines = ax.plot(server_name,sarsalambda[index],'g')
     rrlines = ax.plot(server_name,rr[index],'y')
     dnnlines = ax.plot(server_name,dnn[index],'black')
-    plt.legend(['Q_learning','sarsa','sarsa lambda(0.5)','Round-Robin','DQN'])
-
+    plt.legend(['capacity','Q_learning','sarsa','sarsa lambda(0.5)','Round-Robin','DQN'])
     l = lines.pop(0)
     lw = sarsalines.pop(0)
     lw2 = saraslambdalines.pop(0)

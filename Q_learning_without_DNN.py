@@ -19,7 +19,7 @@ class QLearningTable:
         self.epsilon = e_greedy
         self.q_table = pd.DataFrame(columns=self.actions, dtype=np.float64)
 
-    def choose_action(self, observation):#传入servering数组
+    def choose_action(self, observation):
         self.check_state_exist(observation)
         # action selection
         if np.random.uniform() < self.epsilon:
@@ -129,7 +129,8 @@ class Env:
     def getInfo(self):
         return self._servering
 def main():
-    capacity = [M for i in range(N)]
+    #capacity = [M for i in range(N)]
+    capacity = np.load('m.npy')
     print(capacity)
     environment = Env(init_server_number=N,capacity=capacity)
     Brain = QLearningTable(serverNum=N)

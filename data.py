@@ -9,5 +9,7 @@ def data(name):
     data[:,3] = np.random.randint(0, 4, sample_num).reshape(sample_num, )
     np.save('%s.npy'%name,data)
     print('ok')
-data("data")
-data("testData")
+
+
+M = np.random.randint(10,100,30)
+np.save('m.npy',M)

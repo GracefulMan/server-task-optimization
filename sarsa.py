@@ -133,7 +133,8 @@ class Env:
     def getInfo(self):
         return self._servering
 def main():
-    capacity = [M for i in range(N)]
+    #capacity = [M for i in range(N)]
+    capacity = np.load('m.npy')
     print(capacity)
     environment = Env(init_server_number=N,capacity=capacity)
     Brain = SarsaTable(serverNum=N)
